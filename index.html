@@ -1,1 +1,440 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MON SUIVI SCOLAIRE</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:18px;font-family:Arial,sans-serif;background:#f0f4ff;color:#172554}
+main{max-width:900px;margin:auto}
+header{background:#2346a0;color:white;text-align:center;padding:25px;border-radius:16px}
+.panel{background:white;padding:18px;margin-top:18px;border-radius:14px;box-shadow:0 3px 12px #0001}
+h2{color:#2346a0}
+label{display:block;font-weight:bold;margin:12px 0 6px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
+textarea{min-height:100px;resize:vertical}
+button,.cameraButton{display:inline-block;background:#2346a0;color:white;border:0;padding:11px 15px;border-radius:8px;margin:8px 5px 0 0;cursor:pointer;font-size:15px}
+.delete{background:#bd3434}
+.green{background:#16864a}
+.cameraButton{background:#16864a}
+.card{border:1px solid #dbe3f0;padding:13px;border-radius:10px;margin-top:12px}
+.card p{white-space:pre-wrap}
+.done{background:#effaf2}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:#eaf0ff;padding:15px;text-align:center;border-radius:10px}
+.number{font-size:25px;font-weight:bold;color:#2346a0}
+.progress{height:13px;background:#dbe3f0;border-radius:20px;overflow:hidden}
+#bar{height:100%;width:0;background:#16864a}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tabs button{flex:1;min-width:120px}
+.hidden{display:none!important}
+.photo{width:100%;max-width:350px;max-height:300px;object-fit:contain;display:block;margin-top:12px;border-radius:10px;border:1px solid #dbe3f0}
+#photoPreview{display:none}
+.cameraArea{background:#f0f4ff;padding:14px;border-radius:10px;margin-top:12px}
+footer{text-align:center;margin:25px;color:#64748b}
+.chatBox{height:360px;overflow-y:auto;background:#f8fafc;border:1px solid #dbe3f0;border-radius:10px;padding:12px;margin:12px 0}
+.chatMessage{padding:11px 13px;border-radius:12px;margin:9px 0;white-space:pre-wrap;overflow-wrap:anywhere;max-width:92%;line-height:1.45}
+.chatMessage.user{background:#eaf0ff;margin-left:auto}
+.chatMessage.assistant{background:#effaf2;margin-right:auto}
+.chatForm{display:flex;gap:8px;align-items:flex-end}
+.chatForm textarea{flex:1;min-height:58px;max-height:140px}
+.chatForm button{margin:0;min-height:48px}
+.chatHint{font-size:13px;color:#64748b}
+@media(max-width:520px){.chatForm{flex-direction:column;align-items:stretch}.chatForm button{width:100%}.chatBox{height:320px}}
+</style>
+</head>
+<body>
+<main>
 
+<header>
+<h1>📚 MON SUIVI SCOLAIRE</h1>
+<p>Je m'organise pour mieux réussir !</p>
+</header>
+
+<div class="panel">
+<div class="tabs">
+<button onclick="showPage('exercices')">📝 Exercices</button>
+<button onclick="showPage('progression')">📊 Progression</button>
+<button onclick="showPage('cahier')">📖 Cahier de révision</button>
+<button onclick="showPage('assistant')">🤖 Mon assistant IA</button>
+</div>
+</div>
+
+<section id="exercices" class="page panel">
+<h2>➕ Ajouter un exercice</h2>
+<label>Matière</label>
+<select id="matiere">
+<option>Mathématiques</option>
+<option>Physique-Chimie</option>
+<option>SVT</option>
+<option>Histoire-Géographie</option>
+<option>Français</option>
+<option>Anglais</option>
+<option>Philosophie</option>
+<option>Autre</option>
+</select>
+<label>Jour</label>
+<select id="jour">
+<option>Lundi</option><option>Mardi</option>
+<option>Mercredi</option><option>Jeudi</option>
+<option>Vendredi</option><option>Samedi</option>
+<option>Dimanche</option>
+</select>
+<label>Consigne de l'exercice</label>
+<textarea id="consigne" placeholder="Exemple : exercice 3 page 25"></textarea>
+<label>Date limite</label>
+<input type="date" id="date">
+<button onclick="ajouterExercice()">Ajouter l'exercice</button>
+<h2>📋 Ma liste d'exercices</h2>
+<div id="listeExercices"></div>
+<button class="green" onclick="partager()">Partager sur WhatsApp</button>
+</section>
+
+<section id="progression" class="page panel hidden">
+<h2>📊 Mon tableau de progression</h2>
+<div class="stats">
+<div class="stat"><div class="number" id="total">0</div><small>Total</small></div>
+<div class="stat"><div class="number" id="finis">0</div><small>Terminés</small></div>
+<div class="stat"><div class="number" id="restants">0</div><small>À faire</small></div>
+</div>
+<h3>Ma progression générale</h3>
+<div class="progress"><div id="bar"></div></div>
+<p id="pourcentage">0 % terminé</p>
+<h3>Mes exercices par matière</h3>
+<div id="parMatiere"></div>
+</section>
+
+<section id="cahier" class="page panel hidden">
+<h2>📖 Mon cahier de révision</h2>
+<label>Matière</label>
+<select id="noteMatiere">
+<option>Mathématiques</option>
+<option>Physique-Chimie</option>
+<option>SVT</option>
+<option>Histoire-Géographie</option>
+<option>Français</option>
+<option>Anglais</option>
+<option>Philosophie</option>
+<option>Autre</option>
+</select>
+<label>Titre de la leçon</label>
+<input id="titre" placeholder="Exemple : L'énergie mécanique">
+<label>Mon résumé ou mes notes</label>
+<textarea id="contenu" placeholder="Écris ici ta leçon, les formules importantes ou ton résumé..."></textarea>
+
+<div class="cameraArea">
+<h3>📸 Ajouter une photo</h3>
+<p>Tu peux photographier une leçon ou choisir une image déjà enregistrée.</p>
+<label class="cameraButton" for="cameraInput">📷 Prendre une photo</label>
+<input class="hidden" type="file" id="cameraInput" accept="image/*" capture="environment">
+<label class="cameraButton" for="galleryInput">🖼️ Choisir dans la galerie</label>
+<input class="hidden" type="file" id="galleryInput" accept="image/*">
+<img id="photoPreview" class="photo" alt="Aperçu de la photo">
+<button class="delete" id="removePhoto" style="display:none" onclick="retirerPhoto()">Retirer la photo</button>
+<p id="photoMessage" aria-live="polite"></p>
+</div>
+
+<button onclick="ajouterNote()">💾 Enregistrer ma leçon</button>
+<h3>📚 Mes leçons enregistrées</h3>
+<div id="listeNotes"></div>
+</section>
+
+<section id="assistant" class="page panel hidden">
+<h2>🤖 Mon assistant IA</h2>
+<p>Pose une question sur tes cours, tes exercices ou une méthode de travail. L'assistant t'explique étape par étape.</p>
+<div id="chatMessages" class="chatBox" role="log" aria-live="polite">
+<div class="chatMessage assistant">Bonjour ! Je suis ton assistant scolaire. Quelle matière veux-tu travailler aujourd'hui ?</div>
+</div>
+<form class="chatForm" id="chatForm">
+<textarea id="chatInput" maxlength="3000" placeholder="Écris ta question ici..." aria-label="Ta question" required></textarea>
+<button id="sendChat" type="submit">Envoyer</button>
+</form>
+<p class="chatHint">Une connexion Internet est nécessaire. N'écris pas de mot de passe, d'adresse ou d'information personnelle.</p>
+<button type="button" class="delete" onclick="effacerConversation()">Effacer la conversation</button>
+</section>
+
+<footer>MON SUIVI SCOLAIRE — Mon organisation, ma réussite !</footer>
+</main>
+
+<script>
+let exercices=JSON.parse(localStorage.getItem("mesExercices")||"[]");
+let notes=JSON.parse(localStorage.getItem("mesNotes")||"[]");
+let currentPhoto="";
+
+function sauvegarder(){
+ localStorage.setItem("mesExercices",JSON.stringify(exercices));
+ localStorage.setItem("mesNotes",JSON.stringify(notes));
+}
+
+function showPage(id){
+ document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
+ document.getElementById(id).classList.remove("hidden");
+ actualiser();
+}
+
+function ajouterExercice(){
+ let consigne=document.getElementById("consigne").value.trim();
+ if(!consigne){alert("Écris la consigne de ton exercice.");return;}
+ exercices.push({
+  id:Date.now(),
+  matiere:document.getElementById("matiere").value,
+  jour:document.getElementById("jour").value,
+  consigne:consigne,
+  date:document.getElementById("date").value,
+  fait:false
+ });
+ sauvegarder();
+ document.getElementById("consigne").value="";
+ document.getElementById("date").value="";
+ actualiser();
+ alert("Exercice enregistré !");
+}
+
+function terminer(id){
+ exercices=exercices.map(e=>e.id===id?{...e,fait:!e.fait}:e);
+ sauvegarder();actualiser();
+}
+
+function supprimerExercice(id){
+ if(confirm("Supprimer cet exercice ?")){
+  exercices=exercices.filter(e=>e.id!==id);
+  sauvegarder();actualiser();
+ }
+}
+
+function afficherExercices(){
+ let zone=document.getElementById("listeExercices");
+ zone.innerHTML="";
+ if(!exercices.length){zone.textContent="Aucun exercice enregistré.";return;}
+ exercices.forEach(e=>{
+  let div=document.createElement("div");
+  div.className="card"+(e.fait?" done":"");
+  let titre=document.createElement("strong");
+  titre.textContent=e.matiere+" — "+e.jour;
+  let texte=document.createElement("p");
+  texte.textContent=e.consigne;
+  let date=document.createElement("small");
+  date.textContent=e.date?"Date limite : "+e.date:"Pas de date limite";
+  let bouton=document.createElement("button");
+  bouton.textContent=e.fait?"Marquer à faire":"Marquer terminé";
+  bouton.className=e.fait?"green":"";
+  bouton.onclick=()=>terminer(e.id);
+  let sup=document.createElement("button");
+  sup.textContent="Supprimer";
+  sup.className="delete";
+  sup.onclick=()=>supprimerExercice(e.id);
+  div.append(titre,texte,date,bouton,sup);
+  zone.appendChild(div);
+ });
+}
+
+function afficherProgression(){
+ let total=exercices.length;
+ let finis=exercices.filter(e=>e.fait).length;
+ let restants=total-finis;
+ let pct=total?Math.round(finis/total*100):0;
+ document.getElementById("total").textContent=total;
+ document.getElementById("finis").textContent=finis;
+ document.getElementById("restants").textContent=restants;
+ document.getElementById("bar").style.width=pct+"%";
+ document.getElementById("pourcentage").textContent=pct+" % terminé";
+ let compte={};
+ exercices.forEach(e=>{
+  if(!compte[e.matiere])compte[e.matiere]={total:0,finis:0};
+  compte[e.matiere].total++;
+  if(e.fait)compte[e.matiere].finis++;
+ });
+ let zone=document.getElementById("parMatiere");
+ zone.innerHTML="";
+ Object.keys(compte).forEach(m=>{
+  let p=document.createElement("p");
+  p.textContent=m+" : "+compte[m].finis+" terminé(s) sur "+compte[m].total;
+  zone.appendChild(p);
+ });
+ if(!Object.keys(compte).length)zone.textContent="Ajoute des exercices pour voir tes statistiques.";
+}
+
+function preparerPhoto(file){
+ if(!file)return;
+ if(!file.type.startsWith("image/")){alert("Choisis un fichier image.");return;}
+ document.getElementById("photoMessage").textContent="Préparation de la photo...";
+ const reader=new FileReader();
+ reader.onload=function(event){
+  const img=new Image();
+  img.onload=function(){
+   const max=1200;
+   let largeur=img.width,hauteur=img.height;
+   if(largeur>max||hauteur>max){
+    const ratio=Math.min(max/largeur,max/hauteur);
+    largeur=Math.round(largeur*ratio);
+    hauteur=Math.round(hauteur*ratio);
+   }
+   const canvas=document.createElement("canvas");
+   canvas.width=largeur;canvas.height=hauteur;
+   const ctx=canvas.getContext("2d");
+   ctx.drawImage(img,0,0,largeur,hauteur);
+   currentPhoto=canvas.toDataURL("image/jpeg",0.72);
+   const preview=document.getElementById("photoPreview");
+   preview.src=currentPhoto;preview.style.display="block";
+   document.getElementById("removePhoto").style.display="inline-block";
+   document.getElementById("photoMessage").textContent="Photo prête à être enregistrée !";
+  };
+  img.onerror=function(){alert("Impossible de lire cette image.");document.getElementById("photoMessage").textContent="";};
+  img.src=event.target.result;
+ };
+ reader.onerror=function(){alert("Erreur lors de la lecture de la photo.");};
+ reader.readAsDataURL(file);
+}
+
+document.getElementById("cameraInput").addEventListener("change",function(){
+ const file=this.files[0];preparerPhoto(file);this.value="";
+});
+document.getElementById("galleryInput").addEventListener("change",function(){
+ const file=this.files[0];preparerPhoto(file);this.value="";
+});
+
+function retirerPhoto(){
+ currentPhoto="";
+ document.getElementById("photoPreview").src="";
+ document.getElementById("photoPreview").style.display="none";
+ document.getElementById("removePhoto").style.display="none";
+ document.getElementById("photoMessage").textContent="Photo retirée.";
+}
+
+function ajouterNote(){
+ let matiere=document.getElementById("noteMatiere").value;
+ let titre=document.getElementById("titre").value.trim();
+ let contenu=document.getElementById("contenu").value.trim();
+ if(!titre||!contenu){alert("Remplis le titre et le résumé de ta leçon.");return;}
+ let nouvelleNote={id:Date.now(),matiere:matiere,titre:titre,contenu:contenu,photo:currentPhoto};
+ notes.push(nouvelleNote);
+ try{sauvegarder();}
+ catch(error){notes.pop();alert("La mémoire de ton navigateur est peut-être pleine. Retire ou réduis la photo et réessaie.");return;}
+ document.getElementById("titre").value="";
+ document.getElementById("contenu").value="";
+ retirerPhoto();
+ afficherNotes();
+ alert("Leçon enregistrée dans ton cahier !");
+}
+
+function afficherNotes(){
+ let zone=document.getElementById("listeNotes");
+ zone.innerHTML="";
+ if(!notes.length){zone.textContent="Ton cahier est encore vide.";return;}
+ notes.slice().reverse().forEach(n=>{
+  let div=document.createElement("div");div.className="card";
+  let titre=document.createElement("strong");titre.textContent=n.titre+" — "+n.matiere;
+  let contenu=document.createElement("p");contenu.textContent=n.contenu;
+  div.append(titre,contenu);
+  if(n.photo){
+   let image=document.createElement("img");
+   image.src=n.photo;image.alt="Photo de la leçon";image.className="photo";
+   div.appendChild(image);
+  }
+  let sup=document.createElement("button");
+  sup.className="delete";sup.textContent="Supprimer";
+  sup.onclick=()=>{
+   if(confirm("Supprimer cette leçon ?")){
+    notes=notes.filter(x=>x.id!==n.id);
+    sauvegarder();afficherNotes();
+   }
+  };
+  div.appendChild(sup);zone.appendChild(div);
+ });
+}
+
+function partager(){
+ if(!exercices.length){alert("Aucun exercice à partager.");return;}
+ let texte="📚 MON SUIVI SCOLAIRE\n\n";
+ exercices.forEach((e,i)=>{
+  texte+=(i+1)+". "+e.matiere+" - "+e.jour+"\n";
+  texte+=e.consigne+"\n";
+  texte+=e.fait?"Terminé\n\n":"À faire\n\n";
+ });
+ window.open("https://wa.me/?text="+encodeURIComponent(texte),"_blank");
+}
+
+function actualiser(){
+ afficherExercices();afficherProgression();afficherNotes();
+}
+
+let conversationIA=[];
+try{
+ conversationIA=JSON.parse(localStorage.getItem("conversationIA")||"[]");
+ if(!Array.isArray(conversationIA))conversationIA=[];
+}catch(e){conversationIA=[];}
+
+function afficherConversation(){
+ const zone=document.getElementById("chatMessages");
+ if(!zone)return;
+ zone.innerHTML="";
+ if(!conversationIA.length){
+  const bienvenue=document.createElement("div");
+  bienvenue.className="chatMessage assistant";
+  bienvenue.textContent="Bonjour ! Je suis ton assistant scolaire. Quelle matière veux-tu travailler aujourd'hui ?";
+  zone.appendChild(bienvenue);
+ }else{
+  conversationIA.forEach(m=>{
+   const div=document.createElement("div");
+   div.className="chatMessage "+(m.role==="user"?"user":"assistant");
+   div.textContent=m.content;zone.appendChild(div);
+  });
+ }
+ zone.scrollTop=zone.scrollHeight;
+}
+
+function ajouterMessageIA(role,content){
+ conversationIA.push({role,content});
+ if(conversationIA.length>24)conversationIA=conversationIA.slice(-24);
+ try{localStorage.setItem("conversationIA",JSON.stringify(conversationIA));}catch(e){}
+ afficherConversation();
+}
+
+async function envoyerQuestionIA(event){
+ event.preventDefault();
+ const champ=document.getElementById("chatInput");
+ const bouton=document.getElementById("sendChat");
+ const question=champ.value.trim();
+ if(!question)return;
+ champ.value="";
+ ajouterMessageIA("user",question);
+ bouton.disabled=true;bouton.textContent="Réponse...";
+ const attente=document.createElement("div");
+ attente.className="chatMessage assistant";
+ attente.id="iaLoading";
+ attente.textContent="Je réfléchis à ta question...";
+ document.getElementById("chatMessages").appendChild(attente);
+ document.getElementById("chatMessages").scrollTop=document.getElementById("chatMessages").scrollHeight;
+ try{
+  const response=await fetch("/.netlify/functions/assistant",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({messages:conversationIA.slice(-12)})
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||"Le service IA n'est pas encore configuré.");
+  if(!data.answer)throw new Error("L'assistant n'a pas renvoyé de réponse.");
+  ajouterMessageIA("assistant",data.answer);
+ }catch(error){
+  ajouterMessageIA("assistant","Je ne peux pas répondre pour le moment. "+(error.message||"Erreur inconnue.")+" Vérifie la connexion et la configuration du serveur IA.");
+ }finally{
+  const loading=document.getElementById("iaLoading");
+  if(loading)loading.remove();
+  bouton.disabled=false;bouton.textContent="Envoyer";champ.focus();
+ }
+}
+
+function effacerConversation(){
+ if(!confirm("Effacer toute la conversation avec l'assistant ?"))return;
+ conversationIA=[];
+ try{localStorage.removeItem("conversationIA");}catch(e){}
+ afficherConversation();
+}
+
+document.getElementById("chatForm").addEventListener("submit",envoyerQuestionIA);
+afficherConversation();
+actualiser();
+</script>
+</body>
+</html>
